@@ -50,7 +50,7 @@ async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = ' '.join(context.args).upper()
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=message
+        text=message,
     )
 
 
@@ -63,7 +63,7 @@ async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
         InlineQueryResultArticle(
             id=str(uuid4()),
             title='Caps',
-            input_message_content=InputTextMessageContent(query.upper())
+            input_message_content=InputTextMessageContent(query.upper()),
         ),
     ]
     await context.bot.answer_inline_query(update.inline_query.id, results)
