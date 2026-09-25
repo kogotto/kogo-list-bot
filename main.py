@@ -50,7 +50,7 @@ async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = ' '.join(context.args).upper()
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=message
+        text=message,
     )
 
 
@@ -63,10 +63,17 @@ async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
         InlineQueryResultArticle(
             id=str(uuid4()),
             title='Caps',
-            input_message_content=InputTextMessageContent(query.upper())
+            input_message_content=InputTextMessageContent(query.upper()),
         ),
     ]
     await context.bot.answer_inline_query(update.inline_query.id, results)
+
+
+async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text='Не знаю такую комманду',
+    )
 
 
 if __name__ == '__main__':
@@ -84,5 +91,9 @@ if __name__ == '__main__':
 
     inline_caps_handler = InlineQueryHandler(inline_caps)
     application.add_handler(inline_caps_handler)
+
+    # Keep this handler as low as possible
+    unknown_command_handler = MessageHandler(filters.COMMAND, unknown_command)
+    application.add_handler(unknown_command_handler)
 
     application.run_polling()
