@@ -1,13 +1,19 @@
 #!./bot-venv/bin/python3
 
 import logging
-from telegram import Update
+from uuid import uuid4
+from telegram import (
+    Update,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+)
 from telegram.ext import (
     filters,
     ApplicationBuilder,
     ContextTypes,
     CommandHandler,
     MessageHandler,
+    InlineQueryHandler,
 )
 
 
@@ -48,6 +54,21 @@ async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.inline_query.query
+    logging.warning(f'{query=}')
+    if not query:
+        return
+    results = [
+        InlineQueryResultArticle(
+            id=str(uuid4()),
+            title='Caps',
+            input_message_content=InputTextMessageContent(query.upper())
+        ),
+    ]
+    await context.bot.answer_inline_query(update.inline_query.id, results)
+
+
 if __name__ == '__main__':
     token = read_token()
     application = ApplicationBuilder().token(token).build()
@@ -60,5 +81,8 @@ if __name__ == '__main__':
 
     echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
     application.add_handler(echo_handler)
+
+    inline_caps_handler = InlineQueryHandler(inline_caps)
+    application.add_handler(inline_caps_handler)
 
     application.run_polling()
