@@ -17,6 +17,9 @@ from telegram.ext import (
 )
 
 
+LIST_GROUP_ID = -1001446356234
+
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.WARNING
@@ -56,7 +59,6 @@ async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.inline_query.query
-    logging.warning(f'{query=}')
     if not query:
         return
     results = [
@@ -77,8 +79,7 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    token = read_token()
-    application = ApplicationBuilder().token(token).build()
+    application = ApplicationBuilder().token(read_token()).build()
 
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     caps_handler = CommandHandler('caps', caps)
     application.add_handler(caps_handler)
 
-    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
+    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND) & filters.Chat(LIST_GROUP_ID), echo)
     application.add_handler(echo_handler)
 
     inline_caps_handler = InlineQueryHandler(inline_caps)
