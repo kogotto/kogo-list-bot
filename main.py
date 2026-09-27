@@ -15,6 +15,7 @@ from telegram.ext import (
     MessageHandler,
     InlineQueryHandler,
 )
+import mydb
 
 
 LIST_GROUP_ID = -1001446356234
@@ -29,6 +30,7 @@ logging.basicConfig(
 def load_secrets() -> None:
     from dotenv import load_dotenv
     load_dotenv()
+load_secrets()
 
 
 def read_secret(name: str) -> str:
@@ -47,21 +49,28 @@ def read_db_password() -> str:
     return read_secret('KOGO_LIST_BOT_DB_PASSWORD')
 
 
+db = mydb.MyDB(read_db_password())
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text='Hi')
 
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    input = update.message.text
-    message = f'Ты сказал "{input}"?'
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=message
-    )
+async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    input = update.message.text.split('\n')
+    await db.insert_goods(input, update.effective_user.name)
 
 
 async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = ' '.join(context.args).upper()
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=message,
+    )
+
+
+async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = str(await db.get_actual_goods())
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=message,
@@ -90,8 +99,6 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    load_secrets()
-
     application = ApplicationBuilder().token(read_token()).build()
 
     start_handler = CommandHandler('start', start)
@@ -100,8 +107,14 @@ if __name__ == '__main__':
     caps_handler = CommandHandler('caps', caps)
     application.add_handler(caps_handler)
 
-    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND) & filters.Chat(LIST_GROUP_ID), echo)
-    application.add_handler(echo_handler)
+    list_handler = CommandHandler('list', list_command)
+    application.add_handler(list_handler)
+
+    process_message_handler = MessageHandler(
+        filters.TEXT & (~filters.COMMAND) & filters.Chat(LIST_GROUP_ID),
+        process_message
+    )
+    application.add_handler(process_message_handler)
 
     inline_caps_handler = InlineQueryHandler(inline_caps)
     application.add_handler(inline_caps_handler)
