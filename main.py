@@ -26,14 +26,25 @@ logging.basicConfig(
 )
 
 
-def read_token() -> str:
-    import os
+def load_secrets() -> None:
     from dotenv import load_dotenv
     load_dotenv()
-    token = os.getenv('KOGO_LIST_BOT_API_TOKEN')
-    if not token:
-        raise Exception("There is no bot api token in env. See .env.example")
-    return token
+
+
+def read_secret(name: str) -> str:
+    import os
+    secret = os.getenv(name)
+    if not secret:
+        raise Exception(f'There is no {name} in env. See .env.example')
+    return secret
+
+
+def read_token() -> str:
+    return read_secret('KOGO_LIST_BOT_API_TOKEN')
+
+
+def read_db_password() -> str:
+    return read_secret('KOGO_LIST_BOT_DB_PASSWORD')
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -79,6 +90,8 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
+    load_secrets()
+
     application = ApplicationBuilder().token(read_token()).build()
 
     start_handler = CommandHandler('start', start)
