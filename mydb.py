@@ -34,3 +34,11 @@ class MyDB:
                 )
         return await self._do_query(callback)
 
+    async def delete_good(self, good_id: int):
+        def callback(cur):
+            cur.execute(
+                'UPDATE goods SET is_active = false WHERE id = %s',
+                (good_id,),
+            )
+        return await self._do_query(callback)
+

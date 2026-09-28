@@ -115,9 +115,11 @@ def disable_push_button(current_keyboard, pushed_id: str):
 
 async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    pushed_id = query.data
+    await db.delete_good(int(pushed_id))
     await query.answer()
     current_keyboard = query.message.reply_markup.inline_keyboard
-    new_keyboard_markup = disable_push_button(current_keyboard, query.data)
+    new_keyboard_markup = disable_push_button(current_keyboard, pushed_id)
     await query.edit_message_reply_markup(
         reply_markup=InlineKeyboardMarkup(new_keyboard_markup)
     )
