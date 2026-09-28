@@ -1,4 +1,16 @@
 import psycopg2
+from dataclasses import dataclass
+from datetime import datetime
+
+
+@dataclass
+class DbRow:
+    id: int
+    name: str
+    created_at: datetime
+    is_active: bool
+    username: str
+
 
 
 class MyDB:
@@ -21,8 +33,16 @@ class MyDB:
 
     async def get_actual_goods(self):
         def callback(cur):
-            cur.execute('SELECT id, name FROM goods WHERE is_active;')
-            return cur.fetchall()
+            cur.execute('SELECT * FROM goods WHERE is_active;')
+            return [
+                DbRow(
+                    id=row[0],
+                    name=row[1],
+                    created_at=row[2],
+                    is_active=row[3],
+                    username=row[4],
+                ) for row in cur.fetchall()
+            ]
         return await self._do_query(callback)
 
     async def insert_goods(self, goods, username):

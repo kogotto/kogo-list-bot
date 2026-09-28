@@ -82,8 +82,8 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard_markup = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton(
-                f'⬜ {good[1]}',
-                callback_data=str(good[0]),
+                f'⬜ {good.name}',
+                callback_data=str(good.id),
             )] for good in goods
         ]
     )
