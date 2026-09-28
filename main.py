@@ -16,6 +16,7 @@ from telegram.ext import (
     CommandHandler,
     MessageHandler,
     InlineQueryHandler,
+    CallbackQueryHandler,
 )
 import mydb
 
@@ -81,8 +82,8 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard_markup = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton(
-                good[1],
-                callback_data=good[0],
+                f'⬜ {good[1]}',
+                callback_data=str(good[0]),
             )] for good in goods
         ]
     )
@@ -91,6 +92,34 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text='Actual goods',
         reply_markup=keyboard_markup,
         parse_mode='Markdown',
+    )
+
+
+def switch_to_done(text: str):
+    return text.replace("⬜", "✅")
+
+
+def disable_push_button(current_keyboard, pushed_id: str):
+    result = []
+    for current_row in current_keyboard:
+        new_row = [
+            InlineKeyboardButton(
+                text=switch_to_done(button.text),
+                callback_data='done',
+            ) if button.callback_data == pushed_id else button
+            for button in current_row
+        ]
+        result.append(new_row)
+    return result
+
+
+async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    current_keyboard = query.message.reply_markup.inline_keyboard
+    new_keyboard_markup = disable_push_button(current_keyboard, query.data)
+    await query.edit_message_reply_markup(
+        reply_markup=InlineKeyboardMarkup(new_keyboard_markup)
     )
 
 
@@ -127,6 +156,9 @@ if __name__ == '__main__':
     list_handler = CommandHandler('list', list_command)
     application.add_handler(list_handler)
 
+    callback_handler = CallbackQueryHandler(list_callback)
+    application.add_handler(callback_handler)
+
     process_message_handler = MessageHandler(
         filters.TEXT & (~filters.COMMAND) & filters.Chat(LIST_GROUP_ID),
         process_message
@@ -140,4 +172,4 @@ if __name__ == '__main__':
     unknown_command_handler = MessageHandler(filters.COMMAND, unknown_command)
     application.add_handler(unknown_command_handler)
 
-    application.run_polling()
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
