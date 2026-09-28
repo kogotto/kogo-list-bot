@@ -6,6 +6,8 @@ from telegram import (
     Update,
     InlineQueryResultArticle,
     InputTextMessageContent,
+    InputChecklist,
+    InputChecklistTask,
 )
 from telegram.ext import (
     filters,
@@ -70,10 +72,21 @@ async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = str(await db.get_actual_goods())
-    await context.bot.send_message(
+    goods = await db.get_actual_goods()
+    print(goods)
+    checklist = InputChecklist(
+        title='Checklist title by kogo_list_bot',
+        tasks=[
+            InputChecklistTask(
+                id=i,
+                text=good[0],
+            ) for (i, good) in enumerate(goods)
+        ]
+    )
+    await context.bot.send_checklist(
+        business_connection_id='asdf',
         chat_id=update.effective_chat.id,
-        text=message,
+        checklist=checklist,
     )
 
 
