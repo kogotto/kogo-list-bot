@@ -21,7 +21,7 @@ class MyDB:
 
     async def get_actual_goods(self):
         def callback(cur):
-            cur.execute('SELECT name FROM goods WHERE is_active;')
+            cur.execute('SELECT id, name FROM goods WHERE is_active;')
             return cur.fetchall()
         return await self._do_query(callback)
 
