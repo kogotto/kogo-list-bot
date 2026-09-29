@@ -18,6 +18,7 @@ from telegram.ext import (
     CallbackQueryHandler,
 )
 import mydb
+import dotenvconfig
 
 
 LIST_GROUP_ID = -1001446356234
@@ -30,34 +31,8 @@ logging.basicConfig(
 )
 
 
-def load_secrets() -> None:
-    from dotenv import load_dotenv
-    load_dotenv()
-
-
-def read_secret(name: str) -> str:
-    import os
-    secret = os.getenv(name)
-    if not secret:
-        raise Exception(f'There is no {name} in env. See .env.example')
-    return secret
-
-
-def read_token() -> str:
-    return read_secret('KOGO_LIST_BOT_API_TOKEN')
-
-
-def read_db_password() -> str:
-    return read_secret('KOGO_LIST_BOT_DB_PASSWORD')
-
-
 async def create_pool():
-    db_config = {
-        "database": "kogotto",
-        "user": "kogo_list_bot",
-        "password": read_db_password(),
-        "host": '127.0.0.1',
-    }
+    db_config = dotenvconfig.read_db_config()
     return await asyncpg.create_pool(**db_config)
 
 
@@ -184,11 +159,11 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    load_secrets()
+    dotenvconfig.load()
 
     application = (
         ApplicationBuilder()
-        .token(read_token())
+        .token(dotenvconfig.read_token())
         .post_init(post_init)
         .post_shutdown(post_shutdown)
         .build()
