@@ -192,7 +192,7 @@ if __name__ == '__main__':
     caps_handler = CommandHandler('caps', caps)
     application.add_handler(caps_handler)
 
-    list_handler = CommandHandler('list', list_command)
+    list_handler = CommandHandler('list', list_command, filters=filters.Chat(LIST_GROUP_ID))
     application.add_handler(list_handler)
 
     callback_handler = CallbackQueryHandler(list_callback)
