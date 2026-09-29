@@ -1,9 +1,8 @@
 import asyncpg
+import logging
 
 
 class GoodType(asyncpg.Record):
-    def _init__(*args, **kwargs):
-        super.__init__(*args, **kwargs)
     def id(self):
         return self['id']
     def name(self):
@@ -31,7 +30,8 @@ class MyDB:
         try:
             return await callback(conn)
         except Exception as e:
-            print(f'Database error: {e}')
+            logging.error(f'Database error: {e}')
+            raise
         finally:
             await conn.close()
 

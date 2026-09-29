@@ -64,8 +64,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    input = update.message.text.split('\n')
-    await db.insert_goods(input, update.effective_user.name)
+    text = update.message.text
+    if not text:
+        return
+
+    input = text.split('\n')
+
+    try:
+        await db.insert_goods(input, update.effective_user.name)
+    except Exception as e:
+        logging.error(e)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='❌ Что-то пошло не так. Повторите через некоторое время.',
+        )
 
 
 async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -77,7 +89,23 @@ async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    goods = await db.get_actual_goods()
+    try:
+        goods = await db.get_actual_goods()
+    except Exception as e:
+        logging.error(e)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='❌ Что-то пошло не так. Повторите через некоторое время.',
+        )
+        return
+
+    if not goods:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='Actual goods list empty',
+        )
+        return
+
     keyboard_markup = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton(
@@ -88,7 +116,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='Actual goods',
+        text='Actual goods list',
         reply_markup=keyboard_markup,
     )
 
@@ -113,9 +141,19 @@ def disable_push_button(current_keyboard, pushed_id: str):
 
 async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    pushed_id = query.data
-    await db.buy_good(int(pushed_id))
     await query.answer()
+    pushed_id = query.data
+
+    try:
+        await db.buy_good(int(pushed_id))
+    except Exception as e:
+        logging.error(e)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='❌ Что-то пошло не так. Повторите через некоторое время.'
+        )
+        return
+
     current_keyboard = query.message.reply_markup.inline_keyboard
     new_keyboard_markup = disable_push_button(current_keyboard, pushed_id)
     await query.edit_message_reply_markup(
