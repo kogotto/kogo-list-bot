@@ -78,14 +78,6 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = ' '.join(context.args).upper()
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=message,
-    )
-
-
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         goods = await db.get_actual_goods()
@@ -186,9 +178,6 @@ if __name__ == '__main__':
 
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
-
-    caps_handler = CommandHandler('caps', caps)
-    application.add_handler(caps_handler)
 
     list_handler = CommandHandler('list', list_command, filters=filters.Chat(LIST_GROUP_ID))
     application.add_handler(list_handler)
