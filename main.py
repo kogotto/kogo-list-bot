@@ -53,10 +53,6 @@ def read_db_password() -> str:
     return read_secret('KOGO_LIST_BOT_DB_PASSWORD')
 
 
-def read_business_connection_id() -> str:
-    return read_secret('KOGO_LIST_BOT_BUSINESS_CONNECTION_ID')
-
-
 db = mydb.MyDB(read_db_password())
 
 
