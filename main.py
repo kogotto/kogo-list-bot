@@ -21,7 +21,6 @@ import mydb
 import secrets_config
 
 
-LIST_GROUP_ID = -1001446356234
 DONE_CALLBACK_DATA = 'done'
 
 
@@ -169,14 +168,16 @@ if __name__ == '__main__':
         .build()
     )
 
-    list_handler = CommandHandler('list', list_command, filters=filters.Chat(LIST_GROUP_ID))
+    MY_GROUP = filters.Chat(secrets_config.read_my_group_id())
+
+    list_handler = CommandHandler('list', list_command, filters=MY_GROUP)
     application.add_handler(list_handler)
 
     callback_handler = CallbackQueryHandler(list_callback)
     application.add_handler(callback_handler)
 
     process_message_handler = MessageHandler(
-        filters.TEXT & (~filters.COMMAND) & filters.Chat(LIST_GROUP_ID),
+        filters.TEXT & (~filters.COMMAND) & MY_GROUP,
         process_message
     )
     application.add_handler(process_message_handler)

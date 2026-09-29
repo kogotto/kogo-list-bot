@@ -44,3 +44,8 @@ def read_db_config():
 
 def read_token() -> str:
     return _read_critical_secret('KOGO_LIST_BOT_API_TOKEN')
+
+
+def read_my_group_id() -> int:
+    secret = _read_critical_secret('KOGO_LIST_BOT_GROUP_ID')
+    return int(secret)
