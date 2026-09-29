@@ -64,7 +64,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     try:
-        db = context.bot_data.get('db')
+        db = context.bot_data['db']
         await db.insert_goods(input, update.effective_user.name)
     except Exception as e:
         logging.error(e)
@@ -76,7 +76,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        db = context.bot_data.get('db')
+        db = context.bot_data['db']
         goods = await db.get_actual_goods()
     except Exception as e:
         logging.error(e)
@@ -133,7 +133,7 @@ async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
-        db = context.bot_data.get('db')
+        db = context.bot_data['db']
         await db.buy_good(int(query.data))
     except Exception as e:
         logging.error(e)
