@@ -13,7 +13,6 @@ from telegram.ext import (
     ContextTypes,
     CommandHandler,
     MessageHandler,
-    InlineQueryHandler,
     CallbackQueryHandler,
 )
 import mydb
