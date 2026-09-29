@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
 import logging
-from uuid import uuid4
 from telegram import (
     Update,
+    BotCommand,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
 from telegram.ext import (
     filters,
+    Application,
     ApplicationBuilder,
     ContextTypes,
     CommandHandler,
@@ -51,6 +52,16 @@ def read_db_password() -> str:
 
 
 db = mydb.MyDB(read_db_password())
+
+
+async def post_init(application: Application):
+    commands = [
+        BotCommand(
+            command='list',
+            description='Get actual goods list',
+        )
+    ]
+    await application.bot.set_my_commands(commands)
 
 
 async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -153,7 +164,7 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(read_token()).build()
+    application = ApplicationBuilder().token(read_token()).post_init(post_init).build()
 
     list_handler = CommandHandler('list', list_command, filters=filters.Chat(LIST_GROUP_ID))
     application.add_handler(list_handler)
