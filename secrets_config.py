@@ -17,8 +17,8 @@ def _read_db_name() -> str:
     return _read_critical_secret('KOGO_LIST_BOT_DB_NAME')
 
 
-def _read_db_username() -> str:
-    return _read_critical_secret('KOGO_LIST_BOT_DB_USERNAME')
+def _read_db_user() -> str:
+    return _read_critical_secret('KOGO_LIST_BOT_DB_USER')
 
 
 def _read_db_password() -> str:
@@ -36,7 +36,7 @@ def load() -> None:
 def read_db_config():
     return {
         'database': _read_db_name(),
-        'user': _read_db_username(),
+        'user': _read_db_user(),
         'password': _read_db_password(),
         'host': _read_db_host(),
     }
