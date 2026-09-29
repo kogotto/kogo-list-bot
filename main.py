@@ -186,7 +186,7 @@ if __name__ == '__main__':
     application.add_handler(process_message_handler)
 
     # Keep this handler as low as possible
-    unknown_command_handler = MessageHandler(filters.COMMAND, unknown_command)
+    unknown_command_handler = MessageHandler(MY_GROUP & filters.COMMAND, unknown_command)
     application.add_handler(unknown_command_handler)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
