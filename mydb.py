@@ -1,64 +1,59 @@
-import psycopg2
-from dataclasses import dataclass
-from datetime import datetime
+import asyncpg
 
 
-@dataclass
-class DbRow:
-    id: int
-    name: str
-    created_at: datetime
-    is_active: bool
-    username: str
-
+class GoodType(asyncpg.Record):
+    def _init__(*args, **kwargs):
+        super.__init__(*args, **kwargs)
+    def id(self):
+        return self['id']
+    def name(self):
+        return self['name']
+    def created_at(self):
+        return self['created_at']
+    def is_active(self):
+        return self['is_active']
+    def username(self):
+        return self['username']
 
 
 class MyDB:
 
     def __init__(self, password: str):
         self.db_config = {
-            "dbname": "kogotto",
+            "database": "kogotto",
             "user": "kogo_list_bot",
             "password": password,
             "host": '127.0.0.1',
         }
 
     async def _do_query(self, callback):
+        conn = await asyncpg.connect(**self.db_config)
         try:
-            with psycopg2.connect(**self.db_config) as conn:
-                with conn.cursor() as cur:
-                    return callback(cur)
-        except psycopg2.Error as e:
+            return await callback(conn)
+        except Exception as e:
             print(f'Database error: {e}')
+        finally:
+            await conn.close()
 
     async def get_actual_goods(self):
-        def callback(cur):
-            cur.execute('SELECT * FROM goods WHERE is_active;')
-            return [
-                DbRow(
-                    id=row[0],
-                    name=row[1],
-                    created_at=row[2],
-                    is_active=row[3],
-                    username=row[4],
-                ) for row in cur.fetchall()
-            ]
+        async def callback(conn: asyncpg.Connection):
+            return await conn.fetch('SELECT * FROM goods WHERE is_active;', record_class=GoodType)
         return await self._do_query(callback)
 
     async def insert_goods(self, goods, username):
-        def callback(cur):
-            for good in goods:
-                cur.execute(
-                    'INSERT INTO goods (name, username) VALUES (%s, %s)',
-                    (good, username),
+        async def callback(conn: asyncpg.Connection):
+            await conn.executemany(
+                'INSERT INTO goods (name, username) VALUES ($1, $2)',
+                (
+                    (good, username) for good in goods
                 )
-        return await self._do_query(callback)
-
-    async def delete_good(self, good_id: int):
-        def callback(cur):
-            cur.execute(
-                'UPDATE goods SET is_active = false WHERE id = %s',
-                (good_id,),
             )
-        return await self._do_query(callback)
+        await self._do_query(callback)
 
+    async def buy_good(self, good_id: int):
+        async def callback(conn: asyncpg.Connection):
+            await conn.execute(
+                'UPDATE goods SET is_active = false WHERE id = $1',
+                good_id,
+            )
+        await self._do_query(callback)

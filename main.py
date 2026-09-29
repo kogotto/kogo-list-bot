@@ -78,12 +78,11 @@ async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     goods = await db.get_actual_goods()
-    print(goods)
     keyboard_markup = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton(
-                f'⬜ {good.name}',
-                callback_data=str(good.id),
+                f'⬜ {good.name()}',
+                callback_data=str(good.id()),
             )] for good in goods
         ]
     )
@@ -91,7 +90,6 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
         text='Actual goods',
         reply_markup=keyboard_markup,
-        parse_mode='Markdown',
     )
 
 
@@ -116,7 +114,7 @@ def disable_push_button(current_keyboard, pushed_id: str):
 async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     pushed_id = query.data
-    await db.delete_good(int(pushed_id))
+    await db.buy_good(int(pushed_id))
     await query.answer()
     current_keyboard = query.message.reply_markup.inline_keyboard
     new_keyboard_markup = disable_push_button(current_keyboard, pushed_id)
