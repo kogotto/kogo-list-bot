@@ -14,6 +14,8 @@
 build*/
 .cache/
 *venv*/
+__pycache__/
+*.pyc
 compile_commands.json
 
 # Precompiled Headers
