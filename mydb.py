@@ -17,23 +17,16 @@ class GoodType(asyncpg.Record):
 
 class MyDB:
 
-    def __init__(self, password: str):
-        self.db_config = {
-            "database": "kogotto",
-            "user": "kogo_list_bot",
-            "password": password,
-            "host": '127.0.0.1',
-        }
+    def __init__(self, pool: asyncpg.Pool):
+        self.pool = pool
 
     async def _do_query(self, callback):
-        conn = await asyncpg.connect(**self.db_config)
-        try:
-            return await callback(conn)
-        except Exception as e:
-            logging.error(f'Database error: {e}')
-            raise
-        finally:
-            await conn.close()
+        async with self.pool.acquire() as conn:
+            try:
+                return await callback(conn)
+            except Exception as e:
+                logging.error(f'Database error: {e}')
+                raise
 
     async def get_actual_goods(self):
         async def callback(conn: asyncpg.Connection):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncpg
 import logging
 from telegram import (
     Update,
@@ -32,7 +33,6 @@ logging.basicConfig(
 def load_secrets() -> None:
     from dotenv import load_dotenv
     load_dotenv()
-load_secrets()
 
 
 def read_secret(name: str) -> str:
@@ -51,10 +51,21 @@ def read_db_password() -> str:
     return read_secret('KOGO_LIST_BOT_DB_PASSWORD')
 
 
-db = mydb.MyDB(read_db_password())
+async def create_pool():
+    db_config = {
+        "database": "kogotto",
+        "user": "kogo_list_bot",
+        "password": read_db_password(),
+        "host": '127.0.0.1',
+    }
+    return await asyncpg.create_pool(**db_config)
 
 
 async def post_init(application: Application):
+    pool = await create_pool()
+    application.bot_data['db'] = mydb.MyDB(pool)
+    application.bot_data['pool'] = pool
+
     commands = [
         BotCommand(
             command='list',
@@ -62,6 +73,12 @@ async def post_init(application: Application):
         )
     ]
     await application.bot.set_my_commands(commands)
+
+
+async def post_shutdown(application: Application):
+    pool = application.bot_data.get('pool')
+    if pool:
+        await pool.close()
 
 
 async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -73,6 +90,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     try:
+        db = context.bot_data.get('db')
         await db.insert_goods(input, update.effective_user.name)
     except Exception as e:
         logging.error(e)
@@ -84,6 +102,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        db = context.bot_data.get('db')
         goods = await db.get_actual_goods()
     except Exception as e:
         logging.error(e)
@@ -140,6 +159,7 @@ async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
+        db = context.bot_data.get('db')
         await db.buy_good(int(query.data))
     except Exception as e:
         logging.error(e)
@@ -164,7 +184,15 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(read_token()).post_init(post_init).build()
+    load_secrets()
+
+    application = (
+        ApplicationBuilder()
+        .token(read_token())
+        .post_init(post_init)
+        .post_shutdown(post_shutdown)
+        .build()
+    )
 
     list_handler = CommandHandler('list', list_command, filters=filters.Chat(LIST_GROUP_ID))
     application.add_handler(list_handler)
