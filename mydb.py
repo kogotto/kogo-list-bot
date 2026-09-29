@@ -37,7 +37,10 @@ class MyDB:
 
     async def get_actual_goods(self):
         async def callback(conn: asyncpg.Connection):
-            return await conn.fetch('SELECT * FROM goods WHERE is_active;', record_class=GoodType)
+            return await conn.fetch(
+                'SELECT id, name, created_at, is_active, username FROM goods WHERE is_active;',
+                record_class=GoodType
+            )
         return await self._do_query(callback)
 
     async def insert_goods(self, goods, username):
