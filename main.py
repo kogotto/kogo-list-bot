@@ -4,8 +4,6 @@ import logging
 from uuid import uuid4
 from telegram import (
     Update,
-    InlineQueryResultArticle,
-    InputTextMessageContent,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
@@ -15,7 +13,6 @@ from telegram.ext import (
     ContextTypes,
     CommandHandler,
     MessageHandler,
-    InlineQueryHandler,
     CallbackQueryHandler,
 )
 import mydb
@@ -56,10 +53,6 @@ def read_db_password() -> str:
 db = mydb.MyDB(read_db_password())
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='Hi')
-
-
 async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
@@ -76,14 +69,6 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
             text='❌ Что-то пошло не так. Повторите через некоторое время.',
         )
-
-
-async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = ' '.join(context.args).upper()
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=message,
-    )
 
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -160,20 +145,6 @@ async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.inline_query.query
-    if not query:
-        return
-    results = [
-        InlineQueryResultArticle(
-            id=str(uuid4()),
-            title='Caps',
-            input_message_content=InputTextMessageContent(query.upper()),
-        ),
-    ]
-    await context.bot.answer_inline_query(update.inline_query.id, results)
-
-
 async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -183,12 +154,6 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(read_token()).build()
-
-    start_handler = CommandHandler('start', start)
-    application.add_handler(start_handler)
-
-    caps_handler = CommandHandler('caps', caps)
-    application.add_handler(caps_handler)
 
     list_handler = CommandHandler('list', list_command, filters=filters.Chat(LIST_GROUP_ID))
     application.add_handler(list_handler)
@@ -201,9 +166,6 @@ if __name__ == '__main__':
         process_message
     )
     application.add_handler(process_message_handler)
-
-    inline_caps_handler = InlineQueryHandler(inline_caps)
-    application.add_handler(inline_caps_handler)
 
     # Keep this handler as low as possible
     unknown_command_handler = MessageHandler(filters.COMMAND, unknown_command)
