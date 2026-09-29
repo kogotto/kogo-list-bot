@@ -129,6 +129,9 @@ def disable_push_button(current_keyboard, pushed_id: str):
 async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
+    if update.effective_chat.id != secrets_config.read_my_group_id():
+        return
     if query.data == DONE_CALLBACK_DATA:
         return
 
