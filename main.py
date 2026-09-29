@@ -54,10 +54,6 @@ def read_db_password() -> str:
 db = mydb.MyDB(read_db_password())
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text='Hi')
-
-
 async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
@@ -159,9 +155,6 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(read_token()).build()
-
-    start_handler = CommandHandler('start', start)
-    application.add_handler(start_handler)
 
     list_handler = CommandHandler('list', list_command, filters=filters.Chat(LIST_GROUP_ID))
     application.add_handler(list_handler)
