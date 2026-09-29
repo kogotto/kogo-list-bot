@@ -64,7 +64,9 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
 
-    input = update.message.text.split('\n')
+    input = [
+        good.strip() for good in update.message.text.split('\n') if good.strip()
+    ]
 
     try:
         await db.insert_goods(input, update.effective_user.name)
