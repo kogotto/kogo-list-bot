@@ -64,7 +64,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
 
     try:
-        db = context.bot_data.get('db')
+        db = context.bot_data['db']
         await db.insert_goods(input, update.effective_user.name)
     except Exception as e:
         logging.error(e)
@@ -76,7 +76,7 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        db = context.bot_data.get('db')
+        db = context.bot_data['db']
         goods = await db.get_actual_goods()
     except Exception as e:
         logging.error(e)
@@ -129,11 +129,14 @@ def disable_push_button(current_keyboard, pushed_id: str):
 async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
+    if update.effective_chat.id != secrets_config.read_my_group_id():
+        return
     if query.data == DONE_CALLBACK_DATA:
         return
 
     try:
-        db = context.bot_data.get('db')
+        db = context.bot_data['db']
         await db.buy_good(int(query.data))
     except Exception as e:
         logging.error(e)
@@ -183,7 +186,7 @@ if __name__ == '__main__':
     application.add_handler(process_message_handler)
 
     # Keep this handler as low as possible
-    unknown_command_handler = MessageHandler(filters.COMMAND, unknown_command)
+    unknown_command_handler = MessageHandler(MY_GROUP & filters.COMMAND, unknown_command)
     application.add_handler(unknown_command_handler)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
