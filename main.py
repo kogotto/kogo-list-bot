@@ -164,7 +164,12 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(read_token()).post_init(post_init).build()
+    application = (
+        ApplicationBuilder()
+        .token(read_token())
+        .post_init(post_init)
+        .build()
+    )
 
     list_handler = CommandHandler('list', list_command, filters=filters.Chat(LIST_GROUP_ID))
     application.add_handler(list_handler)
