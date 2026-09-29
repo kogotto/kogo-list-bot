@@ -2,10 +2,6 @@ from dotenv import load_dotenv
 import os
 
 
-def load() -> None:
-    load_dotenv()
-
-
 def _read_secret(name: str) -> str | None:
     return os.getenv(name)
 
@@ -31,6 +27,10 @@ def _read_db_password() -> str:
 
 def _read_db_host() -> str:
     return _read_critical_secret('KOGO_LIST_BOT_DB_HOST')
+
+
+def load() -> None:
+    load_dotenv()
 
 
 def read_db_config():
