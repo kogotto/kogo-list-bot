@@ -22,6 +22,7 @@ import mydb
 
 
 LIST_GROUP_ID = -1001446356234
+DONE_CALLBACK_DATA = 'done'
 
 
 logging.basicConfig(
@@ -131,7 +132,7 @@ def disable_push_button(current_keyboard, pushed_id: str):
         new_row = [
             InlineKeyboardButton(
                 text=switch_to_done(button.text),
-                callback_data='done',
+                callback_data=DONE_CALLBACK_DATA,
             ) if button.callback_data == pushed_id else button
             for button in current_row
         ]
@@ -142,10 +143,11 @@ def disable_push_button(current_keyboard, pushed_id: str):
 async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    pushed_id = query.data
+    if query.data == DONE_CALLBACK_DATA:
+        return
 
     try:
-        await db.buy_good(int(pushed_id))
+        await db.buy_good(int(query.data))
     except Exception as e:
         logging.error(e)
         await context.bot.send_message(
@@ -155,7 +157,7 @@ async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     current_keyboard = query.message.reply_markup.inline_keyboard
-    new_keyboard_markup = disable_push_button(current_keyboard, pushed_id)
+    new_keyboard_markup = disable_push_button(current_keyboard, query.data)
     await query.edit_message_reply_markup(
         reply_markup=InlineKeyboardMarkup(new_keyboard_markup)
     )
