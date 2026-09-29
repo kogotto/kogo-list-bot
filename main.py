@@ -18,7 +18,7 @@ from telegram.ext import (
     CallbackQueryHandler,
 )
 import mydb
-import dotenvconfig
+import secrets_config
 
 
 LIST_GROUP_ID = -1001446356234
@@ -32,7 +32,7 @@ logging.basicConfig(
 
 
 async def create_pool():
-    db_config = dotenvconfig.read_db_config()
+    db_config = secrets_config.read_db_config()
     return await asyncpg.create_pool(**db_config)
 
 
@@ -159,11 +159,11 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
-    dotenvconfig.load()
+    secrets_config.load()
 
     application = (
         ApplicationBuilder()
-        .token(dotenvconfig.read_token())
+        .token(secrets_config.read_token())
         .post_init(post_init)
         .post_shutdown(post_shutdown)
         .build()
