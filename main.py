@@ -4,8 +4,6 @@ import logging
 from uuid import uuid4
 from telegram import (
     Update,
-    InlineQueryResultArticle,
-    InputTextMessageContent,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
@@ -152,20 +150,6 @@ async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.inline_query.query
-    if not query:
-        return
-    results = [
-        InlineQueryResultArticle(
-            id=str(uuid4()),
-            title='Caps',
-            input_message_content=InputTextMessageContent(query.upper()),
-        ),
-    ]
-    await context.bot.answer_inline_query(update.inline_query.id, results)
-
-
 async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -190,9 +174,6 @@ if __name__ == '__main__':
         process_message
     )
     application.add_handler(process_message_handler)
-
-    inline_caps_handler = InlineQueryHandler(inline_caps)
-    application.add_handler(inline_caps_handler)
 
     # Keep this handler as low as possible
     unknown_command_handler = MessageHandler(filters.COMMAND, unknown_command)
