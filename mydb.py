@@ -1,5 +1,4 @@
 import asyncpg
-import logging
 
 
 class GoodType(asyncpg.Record):

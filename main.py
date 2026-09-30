@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 
-import asyncpg
 import logging
+
+import asyncpg
 from telegram import (
-    Update,
     BotCommand,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    Update,
 )
 from telegram.ext import (
-    filters,
     Application,
     ApplicationBuilder,
-    ContextTypes,
-    CommandHandler,
-    MessageHandler,
     CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
 )
+
 import mydb
 import secrets_config
-
 
 DONE_CALLBACK_DATA = 'done'
 
@@ -28,6 +29,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.WARNING
 )
+logger = logging.getLogger(__name__)
 
 
 async def create_pool():
@@ -138,7 +140,7 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
-    logging.error('Exception while handlling an update:', exc_info=context.error)
+    logger.error('Exception while handlling an update:', exc_info=context.error)
 
     if isinstance(update, Update) and update.effective_chat:
         await context.bot.send_message(
