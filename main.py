@@ -63,28 +63,13 @@ async def process_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         good.strip() for good in update.message.text.split('\n') if good.strip()
     ]
 
-    try:
-        db = context.bot_data['db']
-        await db.insert_goods(input, update.effective_user.name)
-    except Exception as e:
-        logging.error(e)
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='❌ Что-то пошло не так. Повторите через некоторое время.',
-        )
+    db = context.bot_data['db']
+    await db.insert_goods(input, update.effective_user.name)
 
 
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        db = context.bot_data['db']
-        goods = await db.get_actual_goods()
-    except Exception as e:
-        logging.error(e)
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='❌ Что-то пошло не так. Повторите через некоторое время.',
-        )
-        return
+    db = context.bot_data['db']
+    goods = await db.get_actual_goods()
 
     if not goods:
         await context.bot.send_message(
@@ -135,16 +120,8 @@ async def list_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == DONE_CALLBACK_DATA:
         return
 
-    try:
-        db = context.bot_data['db']
-        await db.buy_good(int(query.data))
-    except Exception as e:
-        logging.error(e)
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='❌ Что-то пошло не так. Повторите через некоторое время.'
-        )
-        return
+    db = context.bot_data['db']
+    await db.buy_good(int(query.data))
 
     current_keyboard = query.message.reply_markup.inline_keyboard
     new_keyboard_markup = disable_push_button(current_keyboard, query.data)
@@ -158,6 +135,16 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
         text='Не знаю такую комманду',
     )
+
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    logging.error('Exception while handlling an update:', exc_info=context.error)
+
+    if isinstance(update, Update) and update.effective_chat:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='❌ Что-то пошло не так. Повторите через некоторое время.'
+        )
 
 
 if __name__ == '__main__':
@@ -188,5 +175,7 @@ if __name__ == '__main__':
     # Keep this handler as low as possible
     unknown_command_handler = MessageHandler(MY_GROUP & filters.COMMAND, unknown_command)
     application.add_handler(unknown_command_handler)
+
+    application.add_error_handler(error_handler)
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
