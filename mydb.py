@@ -22,11 +22,7 @@ class MyDB:
 
     async def _do_query(self, callback):
         async with self.pool.acquire() as conn:
-            try:
-                return await callback(conn)
-            except Exception as e:
-                logging.error(f'Database error: {e}')
-                raise
+            return await callback(conn)
 
     async def get_actual_goods(self):
         async def callback(conn: asyncpg.Connection):
